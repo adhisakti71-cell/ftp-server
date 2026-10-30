@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="id"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FTP LMS</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
+<style>
+:root{--bg:#f4f7fb;--card:#fff;--tx:#14213d;--mut:#6b7a90;--bd:#e3e9f2;--pri:#009a96;--side:#0b1a33;--ok:#16a34a;--soft:#e0f7f6;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0d1526;--card:#14203a;--tx:#e8eefb;--mut:#93a3bd;--bd:#223250;--soft:#1b2d52}}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--tx)}
+button,input,select,textarea{font:inherit}
+.btn{background:var(--pri);color:#fff;border:0;border-radius:8px;padding:9px 16px;cursor:pointer;font-weight:600}
+.btn.o{background:transparent;border:1px solid var(--bd);color:var(--tx)}.btn.r{background:#dc2626}.btn.s{padding:5px 10px;font-size:13px}
+input,select,textarea{width:100%;padding:10px;border:1px solid var(--bd);border-radius:8px;background:var(--card);color:var(--tx);margin:4px 0 10px}
+#login{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#071226,#0d3a8a);padding:16px}
+.lbox{background:var(--card);padding:28px;border-radius:16px;width:100%;max-width:380px}
+#app{display:none}
+aside{position:fixed;left:0;top:0;bottom:0;width:230px;background:var(--side);color:#cfd9ee;padding:18px 12px;padding-top:calc(18px + env(safe-area-inset-top,0px));overflow:auto;transition:.25s;z-index:20}
+aside h2{color:#fff;margin:0 8px 18px;font-size:20px}aside h2 span{color:#3b9bff}
+aside a{display:block;padding:11px 12px;border-radius:8px;cursor:pointer;margin-bottom:4px}
+aside a.on{background:var(--pri);color:#fff}aside a:hover{background:#17294d}
+main{margin-left:230px;padding:16px}
+.top{display:flex;align-items:center;gap:12px;background:var(--card);padding:10px 16px;border-radius:12px;margin-bottom:16px;justify-content:space-between}
+#mb{display:none}
+.hero{background:linear-gradient(120deg,#06142b,#0b3a8f);color:#fff;border-radius:14px;padding:28px;margin-bottom:16px}
+.hero h1{margin:0 0 8px;font-size:24px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:16px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:16px;margin-bottom:12px}
+.stat b{font-size:26px;display:block}.stat small{color:var(--mut)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.tag{padding:3px 10px;border-radius:99px;font-size:12px;background:var(--soft);color:var(--pri)}.tag.ok{background:#dcfce7;color:var(--ok)}
+.bar{height:8px;background:var(--bd);border-radius:9px;overflow:hidden}.bar i{display:block;height:100%;background:var(--pri)}
+table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:8px;border-bottom:1px solid var(--bd);text-align:left}
+.sc{overflow-x:auto}.mut{color:var(--mut);font-size:13px}
+.opt{display:block;padding:8px 10px;border:1px solid var(--bd);border-radius:8px;margin:5px 0;cursor:pointer}
+.opt.k{border-color:var(--ok);background:#dcfce733}.opt.w{border-color:#dc2626;background:#dc262622}
+.cert{max-width:980px;margin:auto;position:relative;container-type:inline-size;aspect-ratio:1536/1024;background:url(assets/sertifikat-template.jpg) center/100% 100% no-repeat;border-radius:6px;overflow:hidden;color:#0b2a6b;font-family:'Segoe UI','Helvetica Neue',Arial,sans-serif;box-shadow:0 6px 24px rgba(0,0,0,.3)}.cert .ct{position:absolute;transform:translate(-50%,-50%);white-space:nowrap;text-align:center;font-weight:700;line-height:1}.cert .cl{position:absolute;transform:translateY(-50%);white-space:nowrap;line-height:1}
+.big{font-size:54px;font-weight:700;color:#0b3a8f}
+@media(max-width:800px){aside{transform:translateX(-100%)}aside.open{transform:none}main{margin-left:0}#mb{display:block}}
+@media print{@page{size:A4 landscape;margin:0}html,body{background:#fff!important}aside,.top,.noprint{display:none!important}main{margin:0;padding:0}h2.noprint{display:none}.cert{max-width:none;width:100%;border-radius:0;box-shadow:none;-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+</style><style>
+aside{background:linear-gradient(180deg,#0a1a36,#07101f);width:250px;padding:18px 14px;padding-top:calc(18px + env(safe-area-inset-top,0px));color:#e6efff}
+main{margin-left:250px;padding:0 16px 16px}
+.brand{display:flex;gap:12px;align-items:center;margin:0 4px 22px}
+.logo{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#1e88ff,#0a4fc4);display:grid;place-items:center;font-size:24px;color:#fff}
+.brand b{font-size:22px;color:#fff;display:block;line-height:1.1}.brand small{color:#9fb6de;font-size:11px}
+.lbl{letter-spacing:.2em;font-size:12px;color:#8ea6d0;margin:6px 8px 12px}
+aside a{display:flex;gap:16px;align-items:center;padding:13px 16px;border-radius:14px;font-size:16px;margin-bottom:6px;color:#dbe6fa}
+aside a i{font-style:normal;width:22px;text-align:center}
+aside a.on{background:linear-gradient(90deg,#2f7cf0,#1d5fd0);border:1px solid #6fa8ff88;box-shadow:0 4px 14px #1470f555;color:#fff}
+.promo{border:1px solid #ffffff25;background:#ffffff10;border-radius:16px;padding:14px;margin:18px 0}
+.promo b{color:#fff}.promo p{margin:6px 0 0;color:#b9cbea;font-size:13px}
+.top{background:var(--card);border-bottom:1px solid var(--bd);border-radius:0;margin:0 -16px 16px;padding:12px 20px;gap:14px}
+.srch{max-width:460px;margin:0;background:var(--bg)}
+.me{display:flex;align-items:center;gap:10px;margin-left:auto}.me small{display:block;color:var(--mut);font-size:12px}
+.av{width:42px;height:42px;border-radius:50%;background:var(--soft);color:var(--pri);display:grid;place-items:center;font-weight:700}
+.hero{border-radius:16px;background:linear-gradient(120deg,#050f24,#0a3a8f);position:relative;overflow:hidden}
+.hero:after{content:"☁";position:absolute;right:40px;top:10px;font-size:130px;opacity:.25}
+.card{border-radius:16px}.btn{border-radius:10px}
+.cols{display:grid;grid-template-columns:1fr 310px;gap:16px}
+.dn{width:92px;height:92px;border-radius:50%;background:conic-gradient(var(--pri) calc(var(--p)*1%),var(--bd) 0);display:grid;place-items:center;flex:none}
+.dn span{background:var(--card);width:72px;height:72px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:18px}
+.ic{width:44px;height:44px;border-radius:50%;background:var(--soft);display:grid;place-items:center;flex:none;font-size:18px}
+.it{display:flex;gap:14px;align-items:center;padding:12px;border:1px solid var(--bd);border-radius:12px;margin-bottom:10px;cursor:pointer}.it:hover{border-color:var(--pri)}
+.rd{font-size:18px;line-height:1.9;max-width:760px}
+.opt{padding:14px;font-size:17px}.opt.sel{border-color:var(--pri);background:var(--soft)}
+button:disabled{opacity:.4;cursor:default}
+@media(max-width:1000px){.cols{grid-template-columns:1fr}}
+@media(max-width:800px){main{margin-left:0}aside{transform:translateX(-100%);width:280px}aside.open{transform:none}.me div{display:none}.hero:after{font-size:80px;right:10px}}
+</style><style id="liquid-glass">
+/* ===== LIQUID GLASS THEME ===== */
+:root{--g-bg:rgba(255,255,255,.40);--g-bg2:rgba(255,255,255,.58);--g-bd:rgba(255,255,255,.65);--g-hi:rgba(255,255,255,.85);--g-sh:rgba(40,70,140,.18);--g-in:rgba(255,255,255,.45);--bd:rgba(255,255,255,.55);--soft:rgba(0,161,155,.14);--card:rgba(255,255,255,.4);--tx:#102040;--mut:#51627e;--base:#e4f6f5;--bgA:#f1fbfa;--bgB:#cdeceb;
+--b1:#9a78ff;--b2:#ff7ac6;--b3:#ffb86b;--b4:#4fe3c1}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--g-bg:rgba(255,255,255,.08);--g-bg2:rgba(255,255,255,.14);--g-bd:rgba(255,255,255,.18);--g-hi:rgba(255,255,255,.32);--g-sh:rgba(0,0,0,.45);--g-in:rgba(255,255,255,.07);--bd:rgba(255,255,255,.14);--soft:rgba(60,205,198,.22);--card:rgba(255,255,255,.08);--tx:#eaf1ff;--mut:#a3b4d3;--base:#05191b;--bgA:#0a3236;--bgB:#04100f;--b1:#5b2fd6;--b2:#c2257f;--b3:#d9731a;--b4:#0e9a86;--pri:#4fe0d8}}
+html{background:var(--base);min-height:100%}
+body{background:transparent;min-height:100vh}
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(160deg,var(--bgA),var(--bgB))}
+
+/* glass surface recipe */
+.card,.lbox,.top,aside,.it,.opt,.promo,.pill,.nt,table,.rd{-webkit-backdrop-filter:blur(22px) saturate(180%);backdrop-filter:blur(22px) saturate(180%)}
+.card,.lbox,.top,.promo,.it,.opt{background:linear-gradient(135deg,var(--g-bg2),var(--g-bg) 45%,var(--g-in));border:1px solid var(--g-bd);
+box-shadow:inset 0 1.5px 0 var(--g-hi),inset 0 -1px 0 rgba(255,255,255,.12),inset 0 0 18px var(--g-in),0 10px 34px var(--g-sh)}
+.card{border-radius:22px;padding:18px}
+.lbox{border-radius:30px;padding:32px}
+#login{background:transparent}
+.lbox h2{margin-bottom:6px}
+
+/* sidebar: floating glass dock */
+aside{left:12px;top:12px;bottom:12px;width:250px;border-radius:28px;color:var(--tx);
+background:linear-gradient(160deg,var(--g-bg2),var(--g-bg));border:1px solid var(--g-bd);
+box-shadow:inset 0 1.5px 0 var(--g-hi),inset 0 0 24px var(--g-in),0 16px 50px var(--g-sh)}
+aside h2,.brand b{color:var(--tx)}.brand small,.lbl{color:var(--mut)}
+aside a{color:var(--tx);border:1px solid transparent;transition:background .25s,box-shadow .25s,transform .2s}
+aside a:hover{background:var(--g-in);border-color:var(--g-bd);transform:translateX(2px)}
+aside a.on{color:#fff;background:linear-gradient(135deg,rgba(60,205,198,.95),rgba(0,110,110,.85));border:1px solid rgba(255,255,255,.55);
+box-shadow:inset 0 1.5px 0 rgba(255,255,255,.6),0 8px 22px rgba(0,161,155,.45)}
+.promo{border-radius:20px;color:var(--tx)}.promo b{color:var(--tx)}.promo p{color:var(--mut)}
+.logo{background:linear-gradient(135deg,#2fd0c6,#007a86);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.6),0 8px 20px rgba(0,161,155,.45)}
+main{margin-left:286px;padding:12px 18px 18px 6px}
+
+/* top bar: floating glass pill */
+.top{position:sticky;top:12px;z-index:15;margin:0 0 18px;border-radius:24px;padding:10px 18px}
+.srch,#who{background:transparent!important;border:0!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}#who small{display:block}
+.av{background:linear-gradient(135deg,rgba(60,205,198,.9),rgba(0,170,165,.92));color:#fff;border:1px solid rgba(255,255,255,.6);box-shadow:inset 0 1px 0 rgba(255,255,255,.6)}
+
+/* hero */
+.hero{border-radius:28px;border:1px solid rgba(255,255,255,.45);color:#fff;
+background:radial-gradient(60% 120% at 90% 0%,rgba(120,230,255,.45),transparent 60%),linear-gradient(120deg,rgba(0,55,70,.9),rgba(0,150,150,.72));
+-webkit-backdrop-filter:blur(20px) saturate(170%);backdrop-filter:blur(20px) saturate(170%);
+box-shadow:inset 0 1.5px 0 rgba(255,255,255,.55),inset 0 -20px 40px rgba(255,255,255,.06),0 18px 48px rgba(0,110,120,.38)}
+.hero:before{content:"";position:absolute;inset:0 0 55% 0;background:linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,255,255,0));pointer-events:none;border-radius:28px 28px 0 0}
+
+/* inputs & buttons */
+input,select,textarea{background:var(--g-in);border:1px solid var(--g-bd);border-radius:14px;color:var(--tx);
+box-shadow:inset 0 2px 6px rgba(20,40,90,.08),inset 0 1px 0 var(--g-hi);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);transition:box-shadow .2s,border-color .2s}
+input:focus,select:focus,textarea:focus{outline:0;border-color:rgba(60,205,198,.9);box-shadow:0 0 0 4px rgba(0,161,155,.22),inset 0 1px 0 var(--g-hi)}
+input::placeholder{color:var(--mut)}
+.btn{border-radius:14px;border:1px solid rgba(255,255,255,.55);color:#fff;
+background:linear-gradient(180deg,rgba(50,205,196,.98),rgba(0,161,155,.92));
+box-shadow:inset 0 1.5px 0 rgba(255,255,255,.7),inset 0 -6px 12px rgba(0,60,180,.25),0 8px 20px rgba(0,161,155,.4);transition:transform .15s,box-shadow .2s,filter .2s}
+.btn:hover{filter:brightness(1.06);transform:translateY(-1px)}.btn:active{transform:translateY(1px) scale(.99)}
+.btn.o{color:var(--tx);background:linear-gradient(180deg,var(--g-bg2),var(--g-bg));border:1px solid var(--g-bd);
+box-shadow:inset 0 1.5px 0 var(--g-hi),0 4px 14px var(--g-sh);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.btn.r{background:linear-gradient(180deg,rgba(255,120,120,.98),rgba(220,38,38,.92));box-shadow:inset 0 1.5px 0 rgba(255,255,255,.6),0 8px 20px rgba(220,38,38,.35)}
+
+/* lists, options, tags, bars, tables */
+.it,.opt{border-radius:18px;transition:transform .2s,box-shadow .2s,border-color .2s}
+.it:hover,.opt:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.95)}
+.opt.sel{background:linear-gradient(135deg,rgba(60,205,198,.35),rgba(60,205,198,.15));border-color:rgba(60,205,198,.9)}
+.opt.k{background:linear-gradient(135deg,rgba(34,197,94,.3),rgba(34,197,94,.12));border-color:rgba(34,197,94,.9)}
+.opt.w{background:linear-gradient(135deg,rgba(239,68,68,.28),rgba(239,68,68,.1));border-color:rgba(239,68,68,.85)}
+.tag{background:rgba(255,255,255,.45);border:1px solid var(--g-bd);box-shadow:inset 0 1px 0 var(--g-hi);color:var(--pri)}
+.tag.ok{background:rgba(34,197,94,.22);color:var(--ok)}
+.ic{background:var(--g-in);border:1px solid var(--g-bd);box-shadow:inset 0 1px 0 var(--g-hi)}
+.bar{background:rgba(255,255,255,.35);box-shadow:inset 0 1px 3px rgba(20,40,90,.18);height:10px}
+.bar i{background:linear-gradient(90deg,#3fd6cc,#00a19b);box-shadow:0 0 10px rgba(0,161,155,.55)}
+.dn{background:conic-gradient(var(--pri) calc(var(--p)*1%),rgba(255,255,255,.35) 0);filter:drop-shadow(0 4px 10px rgba(0,161,155,.35))}
+.dn span{background:var(--g-bg2);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);color:var(--tx)}
+table{background:transparent;backdrop-filter:none;-webkit-backdrop-filter:none}th,td{border-bottom:1px solid var(--g-bd)}th{color:var(--mut);font-weight:600}
+.stat b{background:linear-gradient(135deg,var(--tx),var(--pri));-webkit-background-clip:text;background-clip:text;color:transparent}
+::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.45);border-radius:9px;border:2px solid transparent;background-clip:padding-box}
+
+@media(max-width:800px){main{margin-left:0;padding:8px 10px 14px}aside{width:280px;left:8px;top:8px;bottom:8px}.top{top:8px;border-radius:20px}}
+@media print{body::before{display:none}html,body{background:#fff!important}.cert{backdrop-filter:none}}
+</style></head><body>
+<div id="login"><div class="lbox">
+<h2 style="margin:0 0 4px">FTP <span style="color:var(--pri)">LMS</span></h2><p class="mut" style="margin-top:0">Learning Management System</p>
+<label>Masuk sebagai</label><select id="lr"><option value="murid">Murid</option><option value="guru">Guru</option></select>
+<label>Username</label><input id="lu" value="adhisakti"><label>Password</label><input id="lp" type="password" value="123">
+<button class="btn" style="width:100%" onclick="doLogin()">Masuk</button>
+<p class="mut" id="le"></p><p class="mut">Demo: adhisakti / guru — password 123</p></div></div>
+
+<div id="app">
+<aside id="sd"><div class="brand"><div class="logo">☁</div><div><b>FTP LMS</b><small>Learning Management System</small></div></div><div id="nav"></div></aside>
+<main><div class="top"><button class="btn o s" id="mb" onclick="sd.classList.toggle('open')">☰</button><span class="pill" id="who"></span><span class="av" id="av"></span></div><div id="v"></div></main>
+</div>
+<script>
+let mem={};
+const G=t=>{try{const s=localStorage.getItem('lms_'+t);if(s)return JSON.parse(s)}catch(e){}return mem[t]||null};
+const S=(t,d)=>{mem[t]=d;try{localStorage.setItem('lms_'+t,JSON.stringify(d))}catch(e){}};
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const $=id=>document.getElementById(id);
+const MT=[["Pengertian FTP Server","Mempelajari apa itu FTP Server, fungsi, dan cara kerjanya.","FTP (File Transfer Protocol) adalah protokol untuk memindahkan file antar komputer lewat jaringan, menggunakan port 21 untuk kontrol dan port 20 untuk data."],["Kelebihan dan Kekurangan FTP","Memahami kelebihan dan kekurangan penggunaan FTP.","Kelebihan: cepat, mendukung file besar, bisa resume. Kekurangan: data tidak terenkripsi (gunakan SFTP/FTPS)."],["Instalasi FTP Server","Langkah instalasi FTP Server di Windows (FileZilla Server).","Unduh FileZilla Server, jalankan installer, atur port admin, lalu start service."],["Konfigurasi FTP Server","Mengatur user, folder, dan hak akses pada FTP Server.","Buat user, tentukan home directory, atur permission read/write/delete."],["Akses FTP Client","Menghubungkan ke server menggunakan FileZilla Client.","Isi Host, Username, Password, Port 21 lalu klik Quickconnect."],["Studi Kasus dan Implementasi","Penerapan FTP Server dalam jaringan lokal atau internet.","Implementasi FTP untuk berbagi tugas sekolah di jaringan LAB."]];
+const MR=[["Adhisakti Damar Pamungkas","adhisakti"],["Adilla Ayu Rahmawati","adilla"],["Aisyah Aninda Okta","aisyah"],["Aisyah Arumi Damayanti","aisyah2"],["Aisyah Cahyowati","aisyah3"],["Aldo Setyawan","aldo"],["Alfafa Azura Najit","alfafa"],["Alfinah Robithoh","alfinah"],["Ameel Sonia Benata","ameel"],["Ananda Habib Bayhaqi","ananda"],["Andrea Rizky Pratama","andrea"],["Anisah Sekar Winiastuti","anisah"],["Aprilia Naura Putri","aprilia"],["Ardias Vidi Prasetyo","ardias"],["Arron Nico Firjatullah","arron"],["Auliadiah Ayu Kusuma Wati","auliadiah"],["Aulya Miftahul Jannah","aulya"],["Aura Eka Saputri","aura"],["Ayu Febriyana","ayu"],["Azzahra Syifa Rahmadhani","azzahra"],["Bangun Pratama","bangun"],["Bilalfi Arohmah Sutrisno","bilalfi"],["Bima Arya Herlambang","bima"],["Dana Salsa Bela","dana"],["Darmawan Aditya Pratama","darmawan"],["Deka Wijaya Kusuma","deka"],["Dhera Amelya Rahmadhani","dhera"],["Dia Salma Salsabila","dia"],["Dimas Dwi Prakoso","dimas"],["Dwi Karsari Nafisa Rahma","dwi"],["Eka Yhulasna Saputra","eka"],["Erland Oktaviansyah","erland"],["Faidatun Fauziah","faidatun"],["Fairus Fathihul Ihsan Hersaputra","fairus"],["Fairush Syiwi Anjani","fairush"],["Farid Rifqi At Thariq","farid"]];
+const SQ=[["Port default untuk kontrol FTP adalah?","20","443","80","21","22","D"],["Kepanjangan FTP adalah?","File Text Protocol","Final Transfer Process","File Transfer Protocol","Fast Transfer Program","Fixed Terminal Port","C"],["Aplikasi FTP Server di Windows yang populer?","Wireshark","Putty","Notepad","Photoshop","FileZilla Server","E"],["Versi FTP yang terenkripsi adalah?","HTTP","SFTP","TFTP","SMTP","DHCP","B"],["Port data FTP mode aktif adalah?","110","25","20","53","443","C"],["Perintah FTP untuk mengunduh satu file dari server adalah?","mkdir","delete","get","put","bye","C"],["Perintah FTP untuk mengunggah file ke server adalah?","cd","put","rename","ls","get","B"],["Mode FTP di mana klien membuka port dan server yang menginisiasi koneksi data disebut?","Mode aktif","Mode terenkripsi","Mode pasif","Mode anonim","Mode biner","A"],["Mode FTP yang lebih ramah firewall/NAT di sisi klien adalah?","Mode ASCII","Mode biner","Mode terminal","Mode aktif","Mode pasif","E"],["Aplikasi FTP Client yang umum dipakai untuk terhubung ke server adalah?","Calculator","Paint","Microsoft Word","FileZilla Client","VLC Player","D"],["Data yang diisi saat Quickconnect di FTP Client adalah?","Hanya nama file","Host, username, password, port","Ukuran file dan tanggal","Alamat email dan nomor HP","Nomor rekening dan PIN","B"],["Port default protokol SFTP (SSH File Transfer Protocol) adalah?","22","23","25","21","80","A"],["FTPS adalah FTP yang diamankan menggunakan?","DHCP","SSL/TLS","SSH","VPN","DNS","B"],["Kekurangan utama FTP biasa adalah?","Tidak bisa digunakan di jaringan lokal","Tidak bisa mengirim file besar","Tidak bisa dipakai di Windows","Data dan password dikirim tanpa enkripsi","Hanya bisa satu pengguna","D"],["Salah satu kelebihan FTP adalah?","Tidak butuh jaringan","Hanya untuk file teks","Semua data otomatis terenkripsi","Mendukung transfer file besar dan fitur resume","Tidak memerlukan username","D"],["Folder awal yang dapat diakses user setelah login ke FTP Server disebut?","Home directory","Temp folder","Root partition","System folder","Recycle bin","A"],["Hak akses pada FTP Server yang mengizinkan user menghapus file adalah?","Delete","Execute","Write","Install","Read","A"],["Login FTP tanpa password pribadi dengan username 'anonymous' disebut?","Login admin","Login terenkripsi","Login root","Login biometrik","Login anonim","E"],["Syarat agar klien dapat terhubung ke FTP Server dalam jaringan lokal adalah?","Menggunakan printer yang sama","Memakai monitor yang sama","Berada di jaringan yang bisa saling terhubung dan IP server diketahui","Menginstal game yang sama","Server dan klien harus memakai sistem operasi yang sama","C"],["Fungsi utama FTP Server pada jaringan lab sekolah adalah?","Mengirim email","Mengatur suhu ruangan","Mencetak dokumen secara otomatis","Menampilkan halaman web","Berbagi dan mentransfer file tugas antar komputer","E"]];
+function init(){
+ if(!G('users'))S('users',[{id:1,nama:'Dina Nurfitasari',role:'guru',username:'guru',password:'123'},{id:2,nama:'Andi Pratama',role:'murid',username:'murid',password:'123'}]);
+ {const us0=G('users');if(us0&&us0.some(u=>u.role==='guru'&&u.nama==='Budi Santoso')){us0.forEach(u=>{if(u.role==='guru'&&u.nama==='Budi Santoso')u.nama='Dina Nurfitasari'});S('users',us0)}}
+ if(!G('materi'))S('materi',MT.map((m,i)=>({id:i+1,judul:m[0],deskripsi:m[1],isi:m[2]})));
+ if(!G('soal'))S('soal',SQ.map((q,i)=>({id:i+1,pertanyaan:q[0],a:q[1],b:q[2],c:q[3],d:q[4],e:q[5],kunci:q[6],sumber:'manual'})));
+ if(!G('seed5')){const q=G('soal');let n=q.reduce((a,b)=>Math.max(a,b.id),0);SQ.forEach(r=>{const o={pertanyaan:r[0],a:r[1],b:r[2],c:r[3],d:r[4],e:r[5],kunci:r[6],sumber:'manual'},x=q.find(z=>z.pertanyaan===r[0]);if(x)Object.assign(x,o);else q.push({id:++n,...o})});q.forEach(z=>{if(z.e===undefined)z.e=''});S('soal',q);S('seed5',1)}
+ if(!G('seedmurid2')){let us=G('users');const dm=us.find(x=>x.username==='murid'&&x.nama==='Andi Pratama');if(dm&&!(G('hasil')||[]).some(x=>x.user_id===dm.id)&&!(G('progress')||[]).some(x=>x.user_id===dm.id))us=us.filter(x=>x!==dm);let n=us.reduce((a,b)=>Math.max(a,b.id),0);MR.forEach(r=>{const e=us.find(x=>x.role==='murid'&&x.nama===r[0]);if(e)e.username=r[1];else us.push({id:++n,nama:r[0],role:'murid',username:r[1],password:'123'})});S('users',us);S('seedmurid2',1)}
+ if(!G('hasil'))S('hasil',[]);if(!G('progress'))S('progress',[]);
+}
+init();let me=null,page='dash',eq=0,ea={},mi=0,qy='',pj=0,pa={},pb={};
+function doLogin(){const u=G('users').find(x=>x.username===$('lu').value.trim()&&x.password===$('lp').value&&x.role===$('lr').value);
+ if(!u){$('le').textContent='Username/password/peran salah';return}
+ me=u;$('login').style.display='none';$('app').style.display='block';$('who').innerHTML='<b>'+u.nama+'</b><small>'+(u.role==='guru'?'Guru':'Siswa')+'</small>';$('av').textContent=u.nama[0];page='dash';nav()}
+$('lr').onchange=e=>$('lu').value=e.target.value;
+function nav(){const g=me.role==='guru';
+ const it=[['dash','▥','Beranda'],['materi','▤','Materi FTP Server'],['pojok','◈','Pojok Digital']];
+ if(g)it.push(['bank','☷','Bank Soal']);
+ it.push(['eval','✎',g?'Evaluasi (Soal & Kunci)':'Evaluasi'],['nilai','▦','Hasil Nilai']);
+ if(g)it.push(['dmurid','☻','Data Murid']);
+ if(!g)it.push(['sert','✦','Sertifikat']);
+ if(g)it.push(['db','⛁','Database']);
+ $('nav').innerHTML='<div class="lbl">MENU UTAMA</div>'+it.map(i=>`<a class="${page===i[0]?'on':''}" onclick="go('${i[0]}')"><i>${i[1]}</i>${i[2]}</a>`).join('')+
+ '<div class="promo"><b>Belajar lebih cerdas</b><p>Materi, evaluasi, dan sertifikat di satu tempat.</p></div>'+
+ `<a class="${page==='akun'?'on':''}" onclick="go('akun')"><i>⚙</i>Keamanan Akun</a><a onclick="location.reload()"><i>⇥</i>Keluar akun</a>`;
+ render()}
+function go(p,k){page=p;if(!k){mi=0;pj=0}if(p!=='materi')qy='';eq=0;ea={};sd.classList.remove('open');nav();scrollTo(0,0)}
+function myHasil(){return G('hasil').filter(h=>h.user_id===me.id)}
+function render(){$('v').innerHTML=({dash,materi,bank,eval:ev,nilai,sert,db,akun,pojok,dmurid})[page]()}
+function dash(){const g=me.role==='guru',m=G('materi'),pr=G('progress').filter(p=>p.user_id===me.id),h=myHasil(),last=h[h.length-1],pct=Math.round(pr.length/m.length*100),all=G('hasil'),avg=all.length?Math.round(all.reduce((a,b)=>a+b.nilai,0)/all.length):'-';
+ const side=g?`<div class="card"><b>Ringkasan Kelas</b><p class="mut">Total pengerjaan: <b>${all.length}</b><br>Rata-rata nilai: <b>${avg}</b></p><button class="btn s" onclick="go('nilai')">Lihat Hasil Nilai</button></div>`:
+ `<div class="card"><b>Progress Belajar</b><div class="row" style="justify-content:flex-start;margin-top:12px"><div class="dn" style="--p:${pct}"><span>${pct}%</span></div><div class="mut">${pr.length} dari ${m.length} materi selesai</div></div><p class="mut" style="background:var(--soft);padding:10px;border-radius:10px">💡 "Terus belajar, karena teknologi selalu berkembang!"</p></div>`;
+ return `<div class="hero"><h1>Selamat Datang, ${esc(me.nama)}! 👋</h1><p>Di LMS FTP Server, tempat kamu belajar tentang konsep, instalasi, dan konfigurasi FTP Server.</p><button class="btn" onclick="go('${g?'bank':'materi'}')">▶ ${g?'Kelola Bank Soal':'Mulai Belajar'}</button> <button class="btn o" style="color:#fff;border-color:#fff8" onclick="go('materi')">Lihat Materi</button></div>
+ <div class="grid"><div class="card stat"><small>Total Materi</small><b>${m.length}</b><small>Modul pembelajaran</small></div>
+ <div class="card stat"><small>Bank Soal</small><b>${G('soal').length}</b><small>Latihan & ujian</small></div>
+ <div class="card stat"><small>${g?'Rata-rata Nilai':'Nilai Terakhir'}</small><b>${g?avg:last?last.nilai:'-'}</b><small>${g?'Semua murid':last?pred(last.nilai):'Belum ada'}</small></div>
+ <div class="card stat"><small>${g?'Pengerjaan':'Progress'}</small><b>${g?all.length:pct+'%'}</b><small>${g?'Total hasil':pr.length+' dari '+m.length+' materi'}</small></div></div>
+ <div class="cols"><div class="card"><div class="row"><b>Materi Pembelajaran</b><a style="color:var(--pri);cursor:pointer" onclick="go('materi')">Lihat Semua →</a></div><div style="margin-top:12px">${m.map(x=>{const d=pr.some(p=>p.materi_id===x.id);return `<div class="it" onclick="mi=${x.id};go('materi',1)"><div class="ic">📄</div><div style="flex:1"><b>${x.id}. ${esc(x.judul)}</b><div class="mut">${esc(x.deskripsi)}</div></div>${g?'':`<span class="tag ${d?'ok':''}">${d?'✔ Selesai':'Belum Dimulai'}</span>`}</div>`}).join('')}</div></div>
+ <div>${side}<div class="card"><b>📢 Pengumuman</b><p class="mut">Selamat datang di LMS FTP Server! Jangan lupa selesaikan materi dan kerjakan evaluasi untuk mendapatkan nilai terbaik.</p></div></div></div>`}
+const pred=n=>n>=85?'Sangat Baik':n>=70?'Baik':'Perlu Ditingkatkan';
+function materi(){const g=me.role==='guru',pr=G('progress').filter(p=>p.user_id===me.id),M=G('materi');
+ if(!mi){const L=M.filter(x=>(x.judul+x.deskripsi+x.isi).toLowerCase().includes(qy.toLowerCase()));
+  return `<h2>Materi FTP Server</h2>${qy?`<p class="mut">Hasil pencarian: "${esc(qy)}"</p>`:''}`+(L.map(x=>{const d=pr.some(p=>p.materi_id===x.id);return `<div class="it" onclick="mi=${x.id};go('materi',1)"><div class="ic">📘</div><div style="flex:1"><b>${x.id}. ${esc(x.judul)}</b><div class="mut">${esc(x.deskripsi)}</div></div>${g?'':`<span class="tag ${d?'ok':''}">${d?'✔ Selesai':'Belum'}</span>`}<button class="btn s">Buka</button></div>`}).join('')||'<p>Materi tidak ditemukan.</p>')}
+ const i=M.findIndex(x=>x.id===mi),x=M[i],d=pr.some(p=>p.materi_id===x.id);
+ return `<button class="btn o s" onclick="go('materi')">‹ Daftar Materi</button><div class="row mut" style="margin-top:14px"><span>Materi ${i+1} dari ${M.length}</span>${d?'<span class="tag ok">✔ Selesai</span>':''}</div><div class="bar" style="margin:8px 0 16px"><i style="width:${(i+1)/M.length*100}%"></i></div>
+ <div class="card"><h2 style="margin-top:0">${esc(x.judul)}</h2><div class="card" style="background:var(--soft);border:0">🎯 <b>Tujuan belajar:</b> ${esc(x.deskripsi)}</div><div class="rd">${esc(x.isi)}</div></div>
+ <div class="row"><button class="btn o" ${i?'':'disabled'} onclick="mi=${i?M[i-1].id:0};go('materi',1)">‹ Sebelumnya</button>${!g&&!d?`<button class="btn" style="background:var(--ok)" onclick="done(${x.id})">✔ Tandai Selesai</button>`:''}${i<M.length-1?`<button class="btn" onclick="mi=${M[i+1]?M[i+1].id:0};go('materi',1)">Berikutnya ›</button>`:`<button class="btn" onclick="go('eval')">Kerjakan Evaluasi ›</button>`}</div>`}
+function done(id){const p=G('progress');p.push({user_id:me.id,materi_id:id});S('progress',p);render()}
+function bank(){const g=me.role==='guru',q=G('soal');
+ return `<h2>Bank Soal</h2>${g?`<div class="card"><b>Upload Soal Otomatis</b><p class="mut">Format Excel/CSV: kolom Pertanyaan, A, B, C, D, E, Kunci (E boleh kosong). Format Word (.docx): "1. soal", "A. opsi", "Kunci: B".</p>
+ <input type="file" id="fi" accept=".xlsx,.xls,.csv,.docx,.txt" onchange="imp(this)">
+ <button class="btn o s" onclick="tpl()">⬇ Template Excel</button> <button class="btn o s" onclick="expSoal()">⬇ Ekspor Excel</button>
+ <p class="mut">PDF: simpan/convert ke Word atau Excel dulu, lalu upload.</p><div id="im"></div></div>`:''}
+ <div class="card sc"><table><tr><th>#</th><th>Pertanyaan</th><th>A</th><th>B</th><th>C</th><th>D</th><th>E</th>${g?'<th>Kunci</th><th></th>':''}</tr>
+ ${q.map((s,i)=>`<tr><td>${i+1}</td><td>${esc(s.pertanyaan)}</td><td>${esc(s.a)}</td><td>${esc(s.b)}</td><td>${esc(s.c)}</td><td>${esc(s.d)}</td><td>${esc(s.e)}</td>${g?`<td><b>${s.kunci}</b></td><td><button class="btn r s" onclick="delQ(${s.id})">Hapus</button></td>`:''}</tr>`).join('')}</table></div>`}
+function delQ(id){S('soal',G('soal').filter(s=>s.id!==id));render()}
+function addQ(rows,src){const q=G('soal');let n=q.reduce((a,b)=>Math.max(a,b.id),0),c=0;
+ rows.forEach(r=>{if(!r.pertanyaan||!/^[A-E]$/.test(r.kunci))return;q.push({id:++n,pertanyaan:r.pertanyaan,a:r.a||'',b:r.b||'',c:r.c||'',d:r.d||'',e:r.e||'',kunci:r.kunci,sumber:src});c++});
+ S('soal',q);render();$('im').innerHTML=`<p class="tag ok">${c} soal berhasil diimpor dan otomatis muncul di semua menu</p>`}
+function imp(el){const f=el.files[0];if(!f)return;const ext=f.name.split('.').pop().toLowerCase(),rd=new FileReader();
+ if(ext==='docx'){rd.onload=async e=>{const r=await mammoth.extractRawText({arrayBuffer:e.target.result});addQ(parseTxt(r.value),f.name)};rd.readAsArrayBuffer(f)}
+ else if(ext==='txt'){rd.onload=e=>addQ(parseTxt(e.target.result),f.name);rd.readAsText(f)}
+ else{rd.onload=e=>{const wb=XLSX.read(e.target.result,{type:'array'}),js=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+  addQ(js.map(r=>{const k={};Object.keys(r).forEach(x=>k[x.trim().toLowerCase()]=r[x]);return{pertanyaan:k.pertanyaan||k.soal,a:k.a,b:k.b,c:k.c,d:k.d,e:k.e,kunci:String(k.kunci||k['kunci jawaban']||'').trim().toUpperCase()}}),f.name)};rd.readAsArrayBuffer(f)}}
+function parseTxt(t){const out=[];let cur=null;t.split(/\r?\n/).map(l=>l.trim()).filter(Boolean).forEach(l=>{let m;
+ if(m=l.match(/^\d+[.)]\s*(.+)/)){cur={pertanyaan:m[1]};out.push(cur)}
+ else if(cur&&(m=l.match(/^([A-E])[.)]\s*(.+)/i)))cur[m[1].toLowerCase()]=m[2];
+ else if(cur&&(m=l.match(/^(kunci|jawaban)[^:=]*[:=]\s*([A-E])/i)))cur.kunci=m[2].toUpperCase();
+ else if(cur&&!cur.a)cur.pertanyaan+=' '+l});return out}
+function tpl(){const ws=XLSX.utils.aoa_to_sheet([['Pertanyaan','A','B','C','D','E','Kunci'],['Port default FTP?','20','21','22','80','443','B']]),wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Soal');XLSX.writeFile(wb,'template-soal.xlsx')}
+function expSoal(){const ws=XLSX.utils.json_to_sheet(G('soal').map(s=>({Pertanyaan:s.pertanyaan,A:s.a,B:s.b,C:s.c,D:s.d,E:s.e,Kunci:s.kunci}))),wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Soal');XLSX.writeFile(wb,'bank-soal.xlsx')}
+function ev(){const q=G('soal');
+ if(me.role==='guru')return `<h2>Evaluasi — Soal & Kunci Jawaban</h2>`+q.map((s,i)=>`<div class="card"><b>${i+1}. ${esc(s.pertanyaan)}</b>${['a','b','c','d','e'].filter(o=>s[o]).map(o=>`<div class="opt ${s.kunci===o.toUpperCase()?'k':''}">${o.toUpperCase()}. ${esc(s[o])}</div>`).join('')}<span class="tag ok">Kunci: ${s.kunci}</span></div>`).join('');
+ if(!q.length)return '<p>Belum ada soal.</p>';
+ const s=q[eq],n=q.length;
+ return `<h2>Evaluasi / Ujian</h2><div class="row mut"><span>Soal ${eq+1} dari ${n}</span><span>Terjawab ${Object.keys(ea).length}/${n}</span></div><div class="bar" style="margin:8px 0 16px"><i style="width:${(eq+1)/n*100}%"></i></div>
+ <div class="card"><div style="font-size:19px;font-weight:600;margin-bottom:10px">${esc(s.pertanyaan)}</div>${['a','b','c','d','e'].filter(o=>s[o]).map(o=>{const O=o.toUpperCase();return `<div class="opt ${ea[s.id]===O?'sel':''}" onclick="ea[${s.id}]='${O}';render()">${O}. ${esc(s[o])}</div>`}).join('')}</div>
+ <div class="row"><button class="btn o" ${eq?'':'disabled'} onclick="eq--;render()">‹ Sebelumnya</button>${eq<n-1?`<button class="btn" onclick="eq++;render()">Berikutnya ›</button>`:`<button class="btn" style="background:var(--ok)" onclick="submitEv()">Kirim Jawaban</button>`}</div>
+ <div class="card" style="margin-top:12px"><span class="mut">Navigasi soal</span><br>${q.map((z,i)=>`<button class="btn s ${i===eq?'':'o'}" style="margin:3px;${ea[z.id]&&i!==eq?'border-color:var(--ok)':''}" onclick="eq=${i};render()">${i+1}</button>`).join('')}</div>`}
+function submitEv(){const q=G('soal');let b=0;const ans={};
+ q.forEach(s=>{ans[s.id]=ea[s.id]||'';if(ans[s.id]===s.kunci)b++});
+ const nilai=Math.round(b/q.length*100),h=G('hasil');h.push({id:h.length+1,user_id:me.id,nilai,benar:b,total:q.length,tanggal:new Date().toLocaleDateString('id-ID')});S('hasil',h);
+ $('v').innerHTML=`<div class="card" style="text-align:center"><h2>Nilai Kamu</h2><div class="big">${nilai}</div><p>${b} benar dari ${q.length} · ${pred(nilai)}</p><button class="btn" onclick="go('sert')">🎓 Lihat Sertifikat</button></div><h3>Pembahasan & Kunci Jawaban</h3>`+
+ q.map((s,i)=>`<div class="card"><b>${i+1}. ${esc(s.pertanyaan)}</b>${['a','b','c','d','e'].filter(o=>s[o]).map(o=>{const O=o.toUpperCase();return `<div class="opt ${O===s.kunci?'k':O===ans[s.id]?'w':''}">${O}. ${esc(s[o])}${O===s.kunci?' ✔':''}${O===ans[s.id]&&O!==s.kunci?' ✘ (jawabanmu)':''}</div>`}).join('')}</div>`).join('')}
+function nilai(){const g=me.role==='guru',us=G('users'),h=g?G('hasil'):myHasil();
+ return `<h2>Hasil Nilai</h2><div class="card sc"><table><tr>${g?'<th>Murid</th>':''}<th>Tanggal</th><th>Benar</th><th>Nilai</th><th>Predikat</th></tr>${h.map(x=>`<tr>${g?`<td>${esc((us.find(u=>u.id===x.user_id)||{}).nama)}</td>`:''}<td>${x.tanggal}</td><td>${x.benar}/${x.total}</td><td><b>${x.nilai}</b></td><td>${pred(x.nilai)}</td></tr>`).join('')||'<tr><td>Belum ada hasil</td></tr>'}</table></div>`}
+let selH=0;
+function sert(){const us=G('users'),all=me.role==='guru'?G('hasil'):myHasil();
+ if(!all.length)return '<h2>Sertifikat</h2><div class="card">Belum ada hasil evaluasi. Murid harus mengerjakan menu Evaluasi dulu.</div>';
+ const x=all.find(a=>a.id===selH)||all[all.length-1],u=us.find(a=>a.id===x.user_id)||{nama:'-'},lulus=x.nilai>=70;
+ const c=getCfg(),mapel=c.mapel||'FTP Server',guruNama=c.guru||'',kelas=c.kelas||'',sekolah=c.sekolah||'';
+ const tanggal=new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+ const sel=`<div class="card noprint"><b>${me.role==='guru'?'Pilih murid / hasil':'Pilih hasil pengerjaan'}</b><select onchange="selH=+this.value;render()">${all.map(a=>`<option value="${a.id}" ${a.id===x.id?'selected':''}>${esc((us.find(k=>k.id===a.user_id)||{}).nama)} — nilai ${a.nilai} (${a.tanggal})</option>`).join('')}</select></div>`;
+ return `<h2 class="noprint">Sertifikat</h2>${sel}<div class="cert"><div class="ct" style="left:50.59%;top:46.68%; font-size:${Math.min(4.1,41/(0.56*Math.max(String(u.nama).length,1)))}cqw">${esc(u.nama)}</div><div class="ct" style="left:50.13%;top:59.18%; font-size:${Math.min(3,30/(0.62*Math.max(String(mapel).length,1)))}cqw">${esc(mapel.toUpperCase())}</div><div class="ct" style="left:55.01%;top:71.88%; font-size:4.7cqw;color:#fff">${x.nilai} / 100</div><div class="ct" style="left:50.46%;top:79.79%; font-size:2.2cqw">STATUS: ${lulus?'TUNTAS':'BELUM TUNTAS'}</div><div class="cl" style="left:73.31%;top:78.42%; font-size:1.35cqw">Klaten, ${tanggal}</div><div class="cl" style="left:73.31%;top:80.96%; font-size:1.35cqw">Guru Mata Pelajaran</div><div class="ct" style="left:81.77%;top:91.02%; font-size:1.6cqw">${esc(guruNama||'Dina Nurfitasari')}</div></div><p class="noprint" style="text-align:center;margin-top:14px"><button class="btn" onclick="print()">🖨 Cetak / Simpan PDF</button><span class="mut" style="margin-left:12px">Atur orientasi → Landscape di dialog cetak</span></p>`}
+function getCfg(){return G('cfg')||{guru:'Dina Nurfitasari',mapel:'FTP Server',kelas:'',sekolah:''}}
+function saveCfg(){const c=getCfg();c.guru=$('cg').value;c.mapel=$('cm').value;c.kelas=$('ck').value;c.sekolah=$('cs').value;S('cfg',c);$('cfgok').textContent='✓ Tersimpan';setTimeout(()=>$('cfgok').textContent='',2000)}
+function akun(){const c=getCfg();const cfgCard=me.role==='guru'?`<div class="card"><b>Pengaturan Sertifikat</b><label>Nama Guru (muncul di sertifikat)</label><input id="cg" value="${esc(c.guru)}"><label>Nama Mata Pelajaran</label><input id="cm" value="${esc(c.mapel)}"><label>Kelas</label><input id="ck" value="${esc(c.kelas)}"><label>Nama Sekolah</label><input id="cs" value="${esc(c.sekolah)}"><button class="btn" onclick="saveCfg()">Simpan</button> <span id="cfgok" class="mut"></span></div>`:'';return `<h2>Keamanan Akun</h2><div class="card"><p class="mut">Login: <b>${esc(me.username)}</b></p><label>Password baru</label><input id="np" type="password"><button class="btn" onclick="chPw()">Simpan Password</button><p id="pm" class="mut"></p></div>${cfgCard}`}
+function chPw(){const v=$('np').value;if(v.length<3){$('pm').textContent='Minimal 3 karakter';return}const u=G('users');u.find(x=>x.id===me.id).password=v;S('users',u);$('pm').textContent='Password diganti ✔'}
+const PD=[['Pekan 1','Flashdisk bergantian',45],['Pekan 2','Kirim lewat chat grup',30],['Pekan 3','FTP Server (awal belajar)',14],['Pekan 4','FTP Server',9],['Pekan 5','FTP Server',8]];
+const PQ=[
+{q:'Sebutkan tiga komponen yang tampak pada gambar dan port yang dipakai untuk koneksi kontrol FTP.',a:'Komputer siswa (FTP Client), jaringan LAN (switch), dan FTP Server. Port kontrol FTP adalah 21.',p:'Informasi ini langsung terlihat pada gambar (label 1-3) dan cerita (port 21 di firewall). Jawaban cukup menyebut ulang informasi.'},
+{q:'Mengapa waktu pengumpulan tugas turun dari pekan 1 ke pekan 5? Hubungkan gambar, cerita, dan data dengan fungsi FTP Server.',a:'Contoh: file dikirim ke satu server pusat lewat LAN sehingga siswa tidak antre memakai flashdisk, akun dan folder pribadi mencegah file tertukar, dan siswa makin terbiasa memakai FTP Client.',p:'Jawaban lain diterima jika memuat alasan dan bukti dari data (45 menit menjadi 8 menit) serta fungsi FTP (transfer terpusat, hak akses).'},
+{q:'Hitunglah penghematan waktu pekan 5 dibanding pekan 1 (dalam menit dan persen). Berapa waktu rata-rata per siswa di pekan 5?',a:'Penghematan = 45 - 8 = 37 menit. Persen = 37 : 45 x 100% = sekitar 82%. Rata-rata per siswa pekan 5 = 8 : 32 = 0,25 menit (15 detik).',p:'Langkah: cari selisih, bagi dengan waktu awal, lalu kalikan 100%. Waktu per siswa = total waktu : jumlah siswa.'},
+{q:'Kelas lain berisi 36 siswa dan waktu tersisa hanya 10 menit. Apakah FTP Server cukup? Putuskan berdasarkan data dan hitunganmu.',a:'Dengan 0,25 menit per siswa, 36 siswa butuh 36 x 0,25 = 9 menit, jadi cukup tetapi hanya tersisa 1 menit; akun dan folder sebaiknya disiapkan lebih dulu. Dengan cara flashdisk pekan 1 (45 : 32 = sekitar 1,41 menit per siswa), 36 siswa butuh sekitar 51 menit sehingga tidak cukup.',p:'Keputusan boleh berbeda (misalnya tetap menyiapkan cadangan) selama memakai angka 9 menit dan batas 10 menit sebagai bukti.'}];
+const STORY='Di SMK Nusa Cendekia (nama fiktif), Pak Rudi mengajar Administrasi Infrastruktur Jaringan di kelas XI yang berisi 32 siswa. Setiap selesai praktik, siswa mengumpulkan laporan dan file konfigurasi. Awalnya mereka bergantian memakai flashdisk, sehingga pengumpulan memakan 45 menit dan beberapa file rusak. Pak Rudi lalu meminta siswa memasang FileZilla Server di komputer lab. Siswa membuat akun, menentukan folder tujuan, dan mengatur hak akses agar setiap siswa hanya bisa mengunggah ke folder miliknya. Beberapa siswa sempat gagal terhubung karena lupa membuka port 21 di firewall; mereka mencari penyebabnya sendiri, saling bertanya, dan mencatat langkah perbaikannya. Dalam lima pekan, mereka terbiasa memakai FTP Client dan pengumpulan hanya butuh 8 menit. Selain lebih cepat, guru dapat memeriksa semua file di satu tempat dan tidak ada tugas yang hilang.';
+function pjg(n){pj=n;render();scrollTo(0,0)}
+function pjb(i){if(!(pa[i]||'').trim()){pb[i]=-1}else pb[i]=1;render()}
+function pojok(){const T=['Amati','Baca','Pahami Data','Jawab','Refleksi'];let b='';
+ if(pj===0)b=`<div class="card"><h3 style="margin-top:0">1. Amati Gambarnya</h3>
+ <svg viewBox="0 0 640 250" style="width:100%;height:auto" role="img" aria-label="Diagram komputer siswa terhubung ke FTP Server lewat jaringan LAN">
+ <defs><marker id="ar" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8z" style="fill:var(--pri)"/></marker></defs>
+ <style>.b{fill:var(--soft);stroke:var(--pri);stroke-width:2}.t{fill:var(--tx);font:600 14px system-ui}.s{fill:var(--mut);font:12px system-ui}.n{fill:var(--pri)}.nt{fill:#fff;font:700 13px system-ui}</style>
+ <rect class="b" x="15" y="85" width="150" height="80" rx="10"/><text class="t" x="90" y="120" text-anchor="middle">Komputer Siswa</text><text class="s" x="90" y="140" text-anchor="middle">(FTP Client)</text>
+ <rect class="b" x="245" y="100" width="150" height="50" rx="10"/><text class="t" x="320" y="130" text-anchor="middle">Jaringan LAN</text>
+ <rect class="b" x="470" y="30" width="155" height="190" rx="10"/><text class="t" x="547" y="55" text-anchor="middle">FTP Server</text>
+ <text class="s" x="547" y="85" text-anchor="middle">Folder: siswa01</text><text class="s" x="547" y="105" text-anchor="middle">Folder: siswa02</text><text class="s" x="547" y="125" text-anchor="middle">Folder: ...</text><text class="s" x="547" y="145" text-anchor="middle">Folder: siswa32</text><text class="s" x="547" y="195" text-anchor="middle">Login + hak akses</text>
+ <line x1="165" y1="125" x2="243" y2="125" stroke-width="3" style="stroke:var(--pri)" marker-end="url(#ar)"/><line x1="395" y1="125" x2="468" y2="125" stroke-width="3" style="stroke:var(--pri)" marker-end="url(#ar)"/>
+ <text class="s" x="430" y="112" text-anchor="middle">Port 21</text>
+ <circle class="n" cx="90" cy="70" r="13"/><text class="nt" x="90" y="75" text-anchor="middle">1</text><circle class="n" cx="320" cy="85" r="13"/><text class="nt" x="320" y="90" text-anchor="middle">2</text><circle class="n" cx="547" cy="14" r="13"/><text class="nt" x="547" y="19" text-anchor="middle">3</text></svg>
+ <p><b>Gambar 1.</b> Alur pengumpulan tugas lewat FTP di lab jaringan. Penanda: 1 = perangkat siswa, 2 = jalur jaringan, 3 = server penyimpan file.</p>
+ <p class="mut">Ilustrasi diagram, bukan foto kejadian sebenarnya.</p>
+ <div class="card" style="background:var(--soft);border:0"><b>Pertanyaan pengamatan</b><ol><li>Apa yang kamu lihat pada gambar?</li><li>Bagaimana hubungan gambar ini dengan materi yang kita pelajari?</li></ol></div></div>`;
+ if(pj===1)b=`<div class="card"><h3 style="margin-top:0">2. Baca Kisahnya: Dari Flashdisk ke FTP Server</h3><div class="rd">${esc(STORY)}</div><p class="mut">Kisah ini adalah skenario fiktif untuk pembelajaran (tokoh, sekolah, dan angka tidak nyata).</p></div>
+ <div class="card" style="background:var(--soft);border:0"><b>Hubungannya dengan Pelajaran Kita</b><ul><li><b>FTP Server</b> menyimpan file di satu tempat sehingga mudah diperiksa.</li><li><b>FTP Client</b> (misalnya FileZilla Client) terhubung dengan host, username, password, dan port 21.</li><li><b>Konfigurasi user dan hak akses</b> menjaga setiap siswa hanya mengunggah ke foldernya.</li><li><b>Firewall</b> perlu mengizinkan port FTP agar koneksi berhasil.</li></ul></div>
+ <div class="card mut">Sumber konsep: <a href="https://www.rfc-editor.org/rfc/rfc959" target="_blank" rel="noopener">RFC 959 – File Transfer Protocol (IETF)</a>; <a href="https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml" target="_blank" rel="noopener">IANA – Service Name and Transport Protocol Port Number Registry</a>.</div>`;
+ if(pj===2)b=`<div class="card"><h3 style="margin-top:0">3. Pahami Datanya</h3><b>Waktu mengumpulkan 32 tugas per pekan (menit)</b>
+ <div class="sc"><table><tr><th>Pekan</th><th>Metode</th><th>Waktu (menit)</th></tr>${PD.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td><b>${r[2]}</b></td></tr>`).join('')}</table></div>
+ <p><b>Grafik batang</b> (skala 0–50 menit; angka tertulis di setiap batang)</p>
+ ${PD.map(r=>`<div style="display:flex;align-items:center;gap:8px;margin:6px 0"><span style="width:60px;font-size:13px">${r[0]}</span><div class="bar" style="flex:1;height:20px"><i style="width:${r[2]/50*100}%;background:${r[2]>20?'#64748b':'var(--pri)'}"></i></div><b style="width:70px;font-size:13px">${r[2]} mnt</b></div>`).join('')}
+ <p class="mut">Data simulasi untuk pembelajaran. Batang abu-abu = cara lama (di atas 20 menit), batang biru = FTP; label tetap tertulis pada setiap baris.</p></div>`;
+ if(pj===3)b=`<div class="card"><h3 style="margin-top:0">4. Ayo Temukan Makna</h3><p class="mut">Tulis jawabanmu dulu (atau di buku/diskusi), baru buka pembahasan.</p></div>`+PQ.map((x,i)=>`<div class="card"><b>${['Temukan informasi','Simpulkan hubungan','Hitung dan bandingkan','Ambil keputusan'][i]}</b><p>${i+1}. ${esc(x.q)}</p><textarea rows="3" placeholder="Tulis jawabanmu..." oninput="pa[${i}]=this.value">${esc(pa[i]||'')}</textarea>
+ <button class="btn s" onclick="pjb(${i})">Lihat Pembahasan</button>${pb[i]===-1?'<p class="mut">Coba jawab dulu ya, lalu buka pembahasan.</p>':''}${pb[i]===1?`<div class="card" style="background:var(--soft);border:0;margin-top:10px"><b>Contoh jawaban:</b> ${esc(x.a)}<br><br><b>Pembahasan:</b> ${esc(x.p)}</div>`:''}</div>`).join('');
+ if(pj===4)b=`<div class="card"><h3 style="margin-top:0">5. Inspirasi untukku</h3><p><b>Setelah membaca, mengamati, dan memahami data, keterampilan apa yang ingin kamu kuasai?</b></p><textarea rows="3" placeholder="Tulis refleksimu..."></textarea>
+ <div class="card" style="background:var(--soft);border:0"><b>Tantangan kecil</b><p>Rancang struktur folder FTP untuk satu kelas: tentukan nama folder, siapa yang boleh membaca, menulis, dan menghapus. Jelaskan alasannya, lalu diskusikan dengan temanmu.</p></div></div>`;
+ return `<div class="hero"><h1>POJOK DIGITAL</h1><p>Lihat Dunianya, Baca Kisahnya, Pahami Datanya!</p></div>
+ <div class="row" style="margin-bottom:12px;justify-content:flex-start">${T.map((t,i)=>`<span class="tag ${i===pj?'ok':''}" style="${i===pj?'font-weight:700':''}">${i+1}. ${t}</span>`).join('')}</div>${b}
+ <div class="row"><button class="btn o" ${pj?'':'disabled'} onclick="pjg(${pj-1})">‹ Kembali</button><button class="btn o" onclick="go('dash')">Menu Utama</button><button class="btn" ${pj<4?'':'disabled'} onclick="pjg(${pj+1})">Lanjut ›</button></div>`}
+function dmurid(){if(me.role!=='guru')return '';const us=G('users').filter(u=>u.role==='murid').sort((x,y)=>x.nama.localeCompare(y.nama)),h=G('hasil'),pr=G('progress'),n=G('materi').length;
+ return `<h2>Data Murid</h2><div class="card"><b>Tambah Murid</b><div class="grid" style="margin:8px 0 0"><div><input id="mn" placeholder="Nama lengkap"></div><div><input id="mu" placeholder="Username"></div><div><input id="mp" placeholder="Password" value="123"></div></div><button class="btn" onclick="addM()">+ Tambah</button> <button class="btn o" onclick="expM()">⬇ Ekspor Excel</button><p id="mm" class="mut"></p></div>
+ <div class="card sc"><table><tr><th>No</th><th>Nama</th><th>Username</th><th>Materi</th><th>Pengerjaan</th><th>Nilai Terakhir</th><th></th></tr>${us.map((u,i)=>{const hh=h.filter(x=>x.user_id===u.id);return `<tr><td>${i+1}</td><td>${esc(u.nama)}</td><td>${esc(u.username)}</td><td>${pr.filter(p=>p.user_id===u.id).length}/${n}</td><td>${hh.length}</td><td><b>${hh.length?hh[hh.length-1].nilai:'-'}</b></td><td><button class="btn o s" onclick="rpw(${u.id})">Reset PW</button> <button class="btn r s" onclick="delM(${u.id})">Hapus</button></td></tr>`}).join('')||'<tr><td>Belum ada murid</td></tr>'}</table></div>`}
+function addM(){const n=$('mn').value.trim(),u=$('mu').value.trim(),p=$('mp').value||'123',us=G('users');
+ if(!n||!u){$('mm').textContent='Nama dan username wajib diisi';return}
+ if(us.some(x=>x.username===u)){$('mm').textContent='Username sudah dipakai';return}
+ us.push({id:us.reduce((a,b)=>Math.max(a,b.id),0)+1,nama:n,role:'murid',username:u,password:p});S('users',us);render()}
+function delM(id){S('users',G('users').filter(u=>u.id!==id));S('hasil',G('hasil').filter(x=>x.user_id!==id));S('progress',G('progress').filter(x=>x.user_id!==id));render()}
+function rpw(id){const us=G('users');us.find(u=>u.id===id).password='123';S('users',us);alert('Password direset ke 123')}
+function expM(){const h=G('hasil'),pr=G('progress'),rows=G('users').filter(u=>u.role==='murid').map(u=>{const hh=h.filter(x=>x.user_id===u.id);return{Nama:u.nama,Username:u.username,'Materi Selesai':pr.filter(p=>p.user_id===u.id).length,Pengerjaan:hh.length,'Nilai Terakhir':hh.length?hh[hh.length-1].nilai:''}});
+ const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),'Murid');XLSX.writeFile(wb,'data-murid.xlsx')}
+function db(){const T={users:'id, nama, role, username, password',materi:'id, judul, deskripsi, isi',soal:'id, pertanyaan, a, b, c, d, e, kunci, sumber',hasil:'id, user_id, nilai, benar, total, tanggal',progress:'user_id, materi_id'};
+ return `<h2>Database (Tabel)</h2>`+Object.keys(T).map(t=>`<div class="card"><div class="row"><b>${t}</b><span class="tag">${G(t).length} baris</span></div><p class="mut">${T[t]}</p></div>`).join('')}
+</script></body></html>
